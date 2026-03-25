@@ -18,6 +18,7 @@ import SectionManager from "@/components/forms/SectionManager";
 import DesignPanel from "@/components/forms/DesignPanel";
 import YamlPreview from "@/components/YamlPreview";
 import PdfPreview from "@/components/PdfPreview";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 type MobileTab = "edit" | "yaml" | "preview";
 
@@ -90,11 +91,13 @@ export default function Home() {
         )}
         {mobileTab === "preview" && (
           <div className="h-[calc(100vh-12rem)]">
-            <PdfPreview
-              pdfBlob={pdfBlob}
-              generating={generating}
-              error={generateError}
-            />
+            <ErrorBoundary>
+              <PdfPreview
+                pdfBlob={pdfBlob}
+                generating={generating}
+                error={generateError}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </div>
@@ -172,11 +175,13 @@ export default function Home() {
           {/* Right panel: PDF preview */}
           {rightOpen && (
             <div className="overflow-hidden bg-white">
-              <PdfPreview
-                pdfBlob={pdfBlob}
-                generating={generating}
-                error={generateError}
-              />
+              <ErrorBoundary>
+                <PdfPreview
+                  pdfBlob={pdfBlob}
+                  generating={generating}
+                  error={generateError}
+                />
+              </ErrorBoundary>
             </div>
           )}
         </div>
