@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+rendercv[full]
+python-multipart
+pyyaml
