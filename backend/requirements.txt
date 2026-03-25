@@ -3,3 +3,6 @@ uvicorn[standard]
 rendercv[full]
 python-multipart
 pyyaml
+pytest
+httpx
+pytest-asyncio

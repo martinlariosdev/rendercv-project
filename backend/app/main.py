@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 from app.routes.generate import router as generate_router
 
@@ -20,6 +23,10 @@ app.include_router(generate_router)
 
 @app.get("/health")
 async def health():
-    import rendercv
+    try:
+        import rendercv
 
-    return {"status": "ok", "rendercv_version": rendercv.__version__}
+        version = rendercv.__version__
+    except (ImportError, AttributeError):
+        version = "unknown"
+    return {"status": "ok", "rendercv_version": version}
