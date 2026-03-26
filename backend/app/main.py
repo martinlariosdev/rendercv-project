@@ -28,30 +28,5 @@ app.include_router(generate_router)
 
 @app.get("/health")
 async def health():
-    try:
-        import rendercv
-
-        version = rendercv.__version__
-        logger.info("Health check passed. rendercv version: %s", version)
-        return JSONResponse(
-            status_code=200,
-            content={"status": "ok", "rendercv_version": version},
-        )
-    except ImportError as exc:
-        logger.error("Health check failed: rendercv could not be imported. %s", exc)
-        return JSONResponse(
-            status_code=503,
-            content={"status": "error", "message": f"rendercv import failed: {exc}"},
-        )
-    except AttributeError as exc:
-        logger.error("Health check failed: rendercv missing __version__. %s", exc)
-        return JSONResponse(
-            status_code=503,
-            content={"status": "error", "message": f"rendercv attribute error: {exc}"},
-        )
-    except Exception as exc:
-        logger.error("Health check failed with unexpected error. %s", exc)
-        return JSONResponse(
-            status_code=503,
-            content={"status": "error", "message": f"Unexpected error: {exc}"},
-        )
+    logger.info("Health check requested")
+    return JSONResponse(status_code=200, content={"status": "ok"})
