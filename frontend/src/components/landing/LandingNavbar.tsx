@@ -14,6 +14,7 @@ function LinkedinIcon({ className }: { className?: string }) {
 
 const NAV_LINKS = [
   { label: "Tech Stack", href: "#tech-stack" },
+  { label: "Blog", href: "#blog" },
   { label: "Builder", href: "#product" },
   { label: "Credits", href: "#credits" },
 ];
@@ -78,17 +79,18 @@ export default function LandingNavbar() {
         {/* Desktop CTA buttons */}
         <div className="hidden items-center gap-3 md:flex">
           <a
-            href="https://www.linkedin.com/in/martin-larios/"
+            href="https://www.linkedin.com/in/martinlariosdev/"
             target="_blank"
             rel="noopener noreferrer"
-            className={`rounded-full p-2 transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
               scrolled
                 ? "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                 : "text-slate-300 hover:bg-white/10 hover:text-white"
             }`}
             aria-label="LinkedIn"
           >
-            <LinkedinIcon className="h-5 w-5" />
+            <LinkedinIcon className="h-4 w-4" />
+            Visit My Profile
           </a>
           <Link
             href="/builder"

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.routes.generate import router as generate_router
+from app.routes.downloads import router as downloads_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -53,6 +54,12 @@ try:
     logger.info("generate_router registered successfully")
 except Exception:
     logger.exception("Failed to register generate_router")
+
+try:
+    app.include_router(downloads_router)
+    logger.info("downloads_router registered successfully")
+except Exception:
+    logger.exception("Failed to register downloads_router")
 
 
 # ---------------------------------------------------------------------------

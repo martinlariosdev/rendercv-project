@@ -75,6 +75,30 @@ export async function fetchThemes(): Promise<string[]> {
 }
 
 /**
+ * Increments the download counter on the backend.
+ */
+export async function incrementDownloadCount(): Promise<{ count: number }> {
+  const response = await fetch(`${API_URL}/downloads/increment`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new ApiError("Failed to increment download count", response.status);
+  }
+  return response.json();
+}
+
+/**
+ * Fetches the current download count from the backend.
+ */
+export async function getDownloadCount(): Promise<{ count: number }> {
+  const response = await fetch(`${API_URL}/downloads/count`);
+  if (!response.ok) {
+    throw new ApiError("Failed to fetch download count", response.status);
+  }
+  return response.json();
+}
+
+/**
  * Checks the health status of the backend API.
  */
 export async function checkHealth(): Promise<{

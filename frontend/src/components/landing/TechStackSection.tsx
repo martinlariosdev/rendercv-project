@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Clock, GitCommit, Zap } from "lucide-react";
 
 const TECH_STACK = [
   {
@@ -125,6 +126,46 @@ export default function TechStackSection() {
             A modern tech stack orchestrated by a multi-agent AI workflow — each
             agent specialized in a different part of the system.
           </p>
+        </motion.div>
+
+        {/* Build Stats */}
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="mx-auto mb-16 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3"
+        >
+          {[
+            {
+              icon: Clock,
+              value: "~6 hours",
+              label: "of active prompting",
+            },
+            {
+              icon: GitCommit,
+              value: "16 commits",
+              label: "across 2 days",
+            },
+            {
+              icon: Zap,
+              value: "6 agents",
+              label: "working in parallel",
+            },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              className="flex flex-col items-center rounded-xl border border-blue-100 bg-blue-50/50 p-5 text-center"
+            >
+              <stat.icon className="mb-2 h-5 w-5 text-blue-500" />
+              <span className="text-2xl font-bold text-slate-900">
+                {stat.value}
+              </span>
+              <span className="text-xs text-slate-500">{stat.label}</span>
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Tech Stack Grid */}

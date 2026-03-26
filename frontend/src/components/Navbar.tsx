@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileDown, RefreshCw, Eye } from "lucide-react";
+import Link from "next/link";
+import { Upload, FileDown, RefreshCw, Eye, ArrowLeft } from "lucide-react";
 import { useResumeStore } from "@/store/resumeStore";
-import { generatePdf, ApiError } from "@/lib/apiClient";
+import { generatePdf, incrementDownloadCount, ApiError } from "@/lib/apiClient";
 import type { ValidationError } from "@/lib/apiClient";
 import YamlImportModal from "./YamlImportModal";
 
@@ -51,7 +52,7 @@ export default function Navbar({
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!pdfBlob) return;
     const firstName = (resumeData.cv?.name ?? "Resume").split(" ")[0];
     const lastName =
@@ -64,6 +65,12 @@ export default function Navbar({
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+
+    try {
+      await incrementDownloadCount();
+    } catch {
+      // silent — don't block download if counter fails
+    }
   };
 
   const handleReset = () => {
@@ -79,9 +86,18 @@ export default function Navbar({
     <>
       <nav className="border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between">
-          <span className="text-lg font-bold text-gray-800">
-            RenderCV Builder
-          </span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              title="Back to landing page"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <span className="text-lg font-bold text-gray-800">
+              RenderCV Builder
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             {/* Dev Mode toggle */}
