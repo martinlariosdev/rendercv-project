@@ -79,7 +79,7 @@ export default function LandingNavbar() {
         {/* Desktop CTA buttons */}
         <div className="hidden items-center gap-3 md:flex">
           <a
-            href="https://www.linkedin.com/in/martinlariosdev/"
+            href="https://www.linkedin.com/in/martin-larios/"
             target="_blank"
             rel="noopener noreferrer"
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
@@ -138,7 +138,7 @@ export default function LandingNavbar() {
                 Go to Builder
               </Link>
               <a
-                href="https://www.linkedin.com/in/martinlariosdev/"
+                href="https://www.linkedin.com/in/martin-larios/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full p-2 text-slate-500 hover:bg-slate-100"

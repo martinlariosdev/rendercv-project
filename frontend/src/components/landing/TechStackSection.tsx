@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, GitCommit, Zap } from "lucide-react";
+import { Clock, GitCommit, Zap, Download } from "lucide-react";
+import { getDownloadCount } from "@/lib/apiClient";
 
 const TECH_STACK = [
   {
@@ -114,6 +116,14 @@ const fadeUp = {
 };
 
 export default function TechStackSection() {
+  const [downloads, setDownloads] = useState<number | null>(null);
+
+  useEffect(() => {
+    getDownloadCount()
+      .then((data) => setDownloads(data.count))
+      .catch(() => setDownloads(null));
+  }, []);
+
   return (
     <section id="tech-stack" className="scroll-mt-20 bg-slate-50 px-6 py-24">
       <div className="mx-auto max-w-screen-xl">
@@ -132,7 +142,7 @@ export default function TechStackSection() {
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.5, delay: 0.05 }}
-          className="mx-auto mb-16 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3"
+          className="mx-auto mb-16 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4"
         >
           {[
             {
@@ -149,6 +159,11 @@ export default function TechStackSection() {
               icon: Zap,
               value: "6 agents",
               label: "working in parallel",
+            },
+            {
+              icon: Download,
+              value: downloads !== null ? String(downloads) : "—",
+              label: "resumes downloaded",
             },
           ].map((stat, i) => (
             <motion.div
