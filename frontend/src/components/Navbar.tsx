@@ -13,6 +13,8 @@ interface NavbarProps {
   setGenerating: (v: boolean) => void;
   setGenerateError: (e: string | null) => void;
   setValidationErrors: (errors: ValidationError[]) => void;
+  devMode: boolean;
+  setDevMode: (v: boolean) => void;
 }
 
 export default function Navbar({
@@ -21,6 +23,8 @@ export default function Navbar({
   setGenerating,
   setGenerateError,
   setValidationErrors,
+  devMode,
+  setDevMode,
 }: NavbarProps) {
   const [showImport, setShowImport] = useState(false);
   const resumeData = useResumeStore((s) => s.resumeData);
@@ -80,6 +84,29 @@ export default function Navbar({
           </span>
 
           <div className="flex items-center gap-2">
+            {/* Dev Mode toggle */}
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <span className="text-xs font-medium text-gray-500">
+                Dev Mode
+              </span>
+              <button
+                role="switch"
+                aria-checked={devMode}
+                onClick={() => setDevMode(!devMode)}
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                  devMode ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                    devMode ? "translate-x-[18px]" : "translate-x-[3px]"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <div className="mx-1 h-6 w-px bg-gray-200" />
+
             <button
               onClick={() => setShowImport(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"

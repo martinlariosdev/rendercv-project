@@ -6,9 +6,7 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
-  Columns3,
   FileText,
-  Code2,
   Eye,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -23,11 +21,6 @@ import type { ValidationError } from "@/lib/apiClient";
 
 type MobileTab = "edit" | "yaml" | "preview";
 
-/**
- * Build a lookup: field path -> error message.
- * RenderCV locations look like "cv.phone", "cv.social_networks.0.network",
- * "cv.sections.education.0.institution", "design.theme", etc.
- */
 function buildErrorMap(errors: ValidationError[]): Record<string, string> {
   const map: Record<string, string> = {};
   for (const err of errors) {
@@ -37,13 +30,15 @@ function buildErrorMap(errors: ValidationError[]): Record<string, string> {
 }
 
 export default function Home() {
-  // PDF state
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
     []
   );
+
+  // Dev mode toggle — controls YAML panel visibility
+  const [devMode, setDevMode] = useState(false);
 
   // Panel collapse state (desktop)
   const [leftOpen, setLeftOpen] = useState(true);
@@ -53,20 +48,42 @@ export default function Home() {
   // Mobile tab
   const [mobileTab, setMobileTab] = useState<MobileTab>("edit");
 
-  // Count open panels for grid layout
-  const openCount = [leftOpen, centerOpen, rightOpen].filter(Boolean).length;
+  // Build visible panels list for desktop grid
+  const visiblePanels = [
+    leftOpen ? "left" : null,
+    devMode && centerOpen ? "center" : null,
+    rightOpen ? "right" : null,
+  ].filter(Boolean);
 
   const errorMap = buildErrorMap(validationErrors);
 
-  const editorPanel = (
-    <div className="overflow-auto p-4">
-      <PersonalInfoForm errors={errorMap} />
-      <hr className="my-6 border-gray-200" />
-      <SectionManager errors={errorMap} />
-      <hr className="my-6 border-gray-200" />
-      <DesignPanel />
-    </div>
-  );
+  // Mobile tabs — only show YAML tab in dev mode
+  const mobileTabs = [
+    { key: "edit" as const, label: "Edit", icon: FileText },
+    ...(devMode
+      ? [
+          {
+            key: "yaml" as const,
+            label: "YAML",
+            icon: () => (
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
+    { key: "preview" as const, label: "Preview", icon: Eye },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -76,18 +93,14 @@ export default function Home() {
         setGenerating={setGenerating}
         setGenerateError={setGenerateError}
         setValidationErrors={setValidationErrors}
+        devMode={devMode}
+        setDevMode={setDevMode}
       />
       <SessionWarningBanner />
 
       {/* Mobile tab bar */}
       <div className="flex border-b border-gray-200 md:hidden">
-        {(
-          [
-            { key: "edit", label: "Edit", icon: FileText },
-            { key: "yaml", label: "YAML", icon: Code2 },
-            { key: "preview", label: "Preview", icon: Eye },
-          ] as const
-        ).map(({ key, label, icon: Icon }) => (
+        {mobileTabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setMobileTab(key)}
@@ -105,8 +118,16 @@ export default function Home() {
 
       {/* Mobile content */}
       <div className="flex-1 md:hidden">
-        {mobileTab === "edit" && editorPanel}
-        {mobileTab === "yaml" && (
+        {mobileTab === "edit" && (
+          <div className="overflow-auto p-4">
+            <PersonalInfoForm errors={errorMap} />
+            <hr className="my-6 border-gray-200" />
+            <SectionManager errors={errorMap} />
+            <hr className="my-6 border-gray-200" />
+            <DesignPanel />
+          </div>
+        )}
+        {mobileTab === "yaml" && devMode && (
           <div className="h-[calc(100vh-12rem)]">
             <YamlPreview />
           </div>
@@ -124,7 +145,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Desktop three-panel layout */}
+      {/* Desktop layout */}
       <div className="hidden flex-1 md:flex">
         {/* Panel toggle strip */}
         <div className="flex shrink-0 flex-col items-center gap-1 border-r border-gray-200 bg-gray-50 px-1 py-2">
@@ -139,13 +160,26 @@ export default function Home() {
               <PanelLeftOpen className="h-4 w-4" />
             )}
           </button>
-          <button
-            onClick={() => setCenterOpen((v) => !v)}
-            className="rounded p-1.5 text-gray-500 hover:bg-gray-200"
-            title={centerOpen ? "Collapse YAML" : "Expand YAML"}
-          >
-            <Columns3 className="h-4 w-4" />
-          </button>
+          {devMode && (
+            <button
+              onClick={() => setCenterOpen((v) => !v)}
+              className="rounded p-1.5 text-gray-500 hover:bg-gray-200"
+              title={centerOpen ? "Collapse YAML" : "Expand YAML"}
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => setRightOpen((v) => !v)}
             className="rounded p-1.5 text-gray-500 hover:bg-gray-200"
@@ -165,18 +199,11 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns:
-              openCount === 0
+              visiblePanels.length === 0
                 ? "1fr"
-                : [
-                    leftOpen ? "1fr" : "",
-                    centerOpen ? "1fr" : "",
-                    rightOpen ? "1fr" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" "),
+                : visiblePanels.map(() => "1fr").join(" "),
           }}
         >
-          {/* Left panel: Form editor */}
           {leftOpen && (
             <div className="overflow-auto border-r border-gray-200 bg-white p-4">
               <PersonalInfoForm errors={errorMap} />
@@ -187,14 +214,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* Center panel: YAML preview */}
-          {centerOpen && (
+          {devMode && centerOpen && (
             <div className="overflow-hidden border-r border-gray-200 bg-white">
               <YamlPreview />
             </div>
           )}
 
-          {/* Right panel: PDF preview */}
           {rightOpen && (
             <div className="overflow-hidden bg-white">
               <ErrorBoundary>
@@ -208,8 +233,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* Fallback when all panels collapsed */}
-        {openCount === 0 && (
+        {visiblePanels.length === 0 && (
           <div className="flex flex-1 items-center justify-center text-gray-400">
             <p className="text-sm">
               All panels are collapsed. Use the toggle buttons on the left to
