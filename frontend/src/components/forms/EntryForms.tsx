@@ -12,9 +12,16 @@ import type {
   SectionEntry,
 } from "@/types/resume";
 
-const inputClass =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+const inputBase =
+  "w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2";
+const inputNormal = `${inputBase} border-gray-300 focus:ring-blue-500`;
+const inputError = `${inputBase} border-red-400 focus:ring-red-500`;
 const labelClass = "block text-xs font-medium text-gray-600 mb-1";
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+}
 
 // ---------------------------------------------------------------------------
 // Shared: HighlightsList
@@ -52,7 +59,7 @@ function HighlightsList({
           <div key={idx} className="flex items-center gap-2">
             <input
               type="text"
-              className={inputClass}
+              className={inputNormal}
               value={h}
               onChange={(e) => update(idx, e.target.value)}
               placeholder="Highlight"
@@ -107,7 +114,7 @@ function AuthorsList({
           <div key={idx} className="flex items-center gap-2">
             <input
               type="text"
-              className={inputClass}
+              className={inputNormal}
               value={a}
               onChange={(e) => update(idx, e.target.value)}
               placeholder="Author name"
@@ -127,20 +134,36 @@ function AuthorsList({
 }
 
 // ---------------------------------------------------------------------------
+// Helper to look up errors for a section entry field
+// ---------------------------------------------------------------------------
+
+function useEntryError(
+  errors: Record<string, string>,
+  sectionKey: string,
+  index: number
+) {
+  return (field: string) =>
+    errors[`cv.sections.${sectionKey}.${index}.${field}`];
+}
+
+// ---------------------------------------------------------------------------
 // Education
 // ---------------------------------------------------------------------------
 
 function EducationEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as EducationEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   const update = (field: string, value: unknown) => {
     updateSectionEntry(sectionKey, index, { ...entry, [field]: value });
@@ -151,27 +174,33 @@ function EducationEntryForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass}>Institution</label>
-          <input className={inputClass} value={entry.institution ?? ""} onChange={(e) => update("institution", e.target.value)} />
+          <input className={err("institution") ? inputError : inputNormal} value={entry.institution ?? ""} onChange={(e) => update("institution", e.target.value)} />
+          <FieldError message={err("institution")} />
         </div>
         <div>
           <label className={labelClass}>Area</label>
-          <input className={inputClass} value={entry.area ?? ""} onChange={(e) => update("area", e.target.value)} />
+          <input className={err("area") ? inputError : inputNormal} value={entry.area ?? ""} onChange={(e) => update("area", e.target.value)} />
+          <FieldError message={err("area")} />
         </div>
         <div>
           <label className={labelClass}>Degree</label>
-          <input className={inputClass} value={entry.degree ?? ""} onChange={(e) => update("degree", e.target.value)} />
+          <input className={err("degree") ? inputError : inputNormal} value={entry.degree ?? ""} onChange={(e) => update("degree", e.target.value)} />
+          <FieldError message={err("degree")} />
         </div>
         <div>
           <label className={labelClass}>Location</label>
-          <input className={inputClass} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <input className={err("location") ? inputError : inputNormal} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <FieldError message={err("location")} />
         </div>
         <div>
           <label className={labelClass}>Start Date</label>
-          <input className={inputClass} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <input className={err("start_date") ? inputError : inputNormal} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <FieldError message={err("start_date")} />
         </div>
         <div>
           <label className={labelClass}>End Date</label>
-          <input className={inputClass} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <input className={err("end_date") ? inputError : inputNormal} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <FieldError message={err("end_date")} />
         </div>
       </div>
       <HighlightsList
@@ -189,14 +218,17 @@ function EducationEntryForm({
 function ExperienceEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as ExperienceEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   const update = (field: string, value: unknown) => {
     updateSectionEntry(sectionKey, index, { ...entry, [field]: value });
@@ -207,27 +239,33 @@ function ExperienceEntryForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass}>Company</label>
-          <input className={inputClass} value={entry.company ?? ""} onChange={(e) => update("company", e.target.value)} />
+          <input className={err("company") ? inputError : inputNormal} value={entry.company ?? ""} onChange={(e) => update("company", e.target.value)} />
+          <FieldError message={err("company")} />
         </div>
         <div>
           <label className={labelClass}>Position</label>
-          <input className={inputClass} value={entry.position ?? ""} onChange={(e) => update("position", e.target.value)} />
+          <input className={err("position") ? inputError : inputNormal} value={entry.position ?? ""} onChange={(e) => update("position", e.target.value)} />
+          <FieldError message={err("position")} />
         </div>
         <div>
           <label className={labelClass}>Location</label>
-          <input className={inputClass} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <input className={err("location") ? inputError : inputNormal} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <FieldError message={err("location")} />
         </div>
         <div>
           <label className={labelClass}>Summary</label>
-          <input className={inputClass} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <input className={err("summary") ? inputError : inputNormal} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <FieldError message={err("summary")} />
         </div>
         <div>
           <label className={labelClass}>Start Date</label>
-          <input className={inputClass} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <input className={err("start_date") ? inputError : inputNormal} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <FieldError message={err("start_date")} />
         </div>
         <div>
           <label className={labelClass}>End Date</label>
-          <input className={inputClass} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <input className={err("end_date") ? inputError : inputNormal} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <FieldError message={err("end_date")} />
         </div>
       </div>
       <HighlightsList
@@ -245,14 +283,17 @@ function ExperienceEntryForm({
 function ProjectEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as NormalEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   const update = (field: string, value: unknown) => {
     updateSectionEntry(sectionKey, index, { ...entry, [field]: value });
@@ -263,23 +304,28 @@ function ProjectEntryForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass}>Name</label>
-          <input className={inputClass} value={entry.name ?? ""} onChange={(e) => update("name", e.target.value)} />
+          <input className={err("name") ? inputError : inputNormal} value={entry.name ?? ""} onChange={(e) => update("name", e.target.value)} />
+          <FieldError message={err("name")} />
         </div>
         <div>
           <label className={labelClass}>Location</label>
-          <input className={inputClass} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <input className={err("location") ? inputError : inputNormal} value={entry.location ?? ""} onChange={(e) => update("location", e.target.value)} />
+          <FieldError message={err("location")} />
         </div>
         <div>
           <label className={labelClass}>Summary</label>
-          <input className={inputClass} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <input className={err("summary") ? inputError : inputNormal} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <FieldError message={err("summary")} />
         </div>
         <div>
           <label className={labelClass}>Start Date</label>
-          <input className={inputClass} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <input className={err("start_date") ? inputError : inputNormal} placeholder="YYYY-MM" value={entry.start_date ?? ""} onChange={(e) => update("start_date", e.target.value)} />
+          <FieldError message={err("start_date")} />
         </div>
         <div>
           <label className={labelClass}>End Date</label>
-          <input className={inputClass} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <input className={err("end_date") ? inputError : inputNormal} placeholder="YYYY-MM or present" value={entry.end_date ?? ""} onChange={(e) => update("end_date", e.target.value)} />
+          <FieldError message={err("end_date")} />
         </div>
       </div>
       <HighlightsList
@@ -297,14 +343,17 @@ function ProjectEntryForm({
 function SkillsEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as OneLineEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   const update = (field: string, value: string) => {
     updateSectionEntry(sectionKey, index, { ...entry, [field]: value });
@@ -314,11 +363,13 @@ function SkillsEntryForm({
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div>
         <label className={labelClass}>Label</label>
-        <input className={inputClass} value={entry.label ?? ""} onChange={(e) => update("label", e.target.value)} />
+        <input className={err("label") ? inputError : inputNormal} value={entry.label ?? ""} onChange={(e) => update("label", e.target.value)} />
+        <FieldError message={err("label")} />
       </div>
       <div>
         <label className={labelClass}>Details</label>
-        <input className={inputClass} value={entry.details ?? ""} onChange={(e) => update("details", e.target.value)} />
+        <input className={err("details") ? inputError : inputNormal} value={entry.details ?? ""} onChange={(e) => update("details", e.target.value)} />
+        <FieldError message={err("details")} />
       </div>
     </div>
   );
@@ -331,14 +382,17 @@ function SkillsEntryForm({
 function PublicationEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as PublicationEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   const update = (field: string, value: unknown) => {
     updateSectionEntry(sectionKey, index, { ...entry, [field]: value });
@@ -349,27 +403,33 @@ function PublicationEntryForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass}>Title</label>
-          <input className={inputClass} value={entry.title ?? ""} onChange={(e) => update("title", e.target.value)} />
+          <input className={err("title") ? inputError : inputNormal} value={entry.title ?? ""} onChange={(e) => update("title", e.target.value)} />
+          <FieldError message={err("title")} />
         </div>
         <div>
           <label className={labelClass}>Journal</label>
-          <input className={inputClass} value={entry.journal ?? ""} onChange={(e) => update("journal", e.target.value)} />
+          <input className={err("journal") ? inputError : inputNormal} value={entry.journal ?? ""} onChange={(e) => update("journal", e.target.value)} />
+          <FieldError message={err("journal")} />
         </div>
         <div>
           <label className={labelClass}>DOI</label>
-          <input className={inputClass} value={entry.doi ?? ""} onChange={(e) => update("doi", e.target.value)} />
+          <input className={err("doi") ? inputError : inputNormal} value={entry.doi ?? ""} onChange={(e) => update("doi", e.target.value)} />
+          <FieldError message={err("doi")} />
         </div>
         <div>
           <label className={labelClass}>URL</label>
-          <input className={inputClass} value={entry.url ?? ""} onChange={(e) => update("url", e.target.value)} />
+          <input className={err("url") ? inputError : inputNormal} value={entry.url ?? ""} onChange={(e) => update("url", e.target.value)} />
+          <FieldError message={err("url")} />
         </div>
         <div>
           <label className={labelClass}>Date</label>
-          <input className={inputClass} placeholder="YYYY-MM" value={entry.date ?? ""} onChange={(e) => update("date", e.target.value)} />
+          <input className={err("date") ? inputError : inputNormal} placeholder="YYYY-MM" value={entry.date ?? ""} onChange={(e) => update("date", e.target.value)} />
+          <FieldError message={err("date")} />
         </div>
         <div>
           <label className={labelClass}>Summary</label>
-          <input className={inputClass} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <input className={err("summary") ? inputError : inputNormal} value={entry.summary ?? ""} onChange={(e) => update("summary", e.target.value)} />
+          <FieldError message={err("summary")} />
         </div>
       </div>
       <AuthorsList
@@ -387,25 +447,29 @@ function PublicationEntryForm({
 function BulletEntryForm({
   sectionKey,
   index,
+  errors,
 }: {
   sectionKey: string;
   index: number;
+  errors: Record<string, string>;
 }) {
   const entry = useResumeStore(
     (s) => (s.resumeData.cv?.sections?.[sectionKey]?.[index] ?? {}) as BulletEntry
   );
   const updateSectionEntry = useResumeStore((s) => s.updateSectionEntry);
+  const err = useEntryError(errors, sectionKey, index);
 
   return (
     <div>
       <label className={labelClass}>Bullet</label>
       <input
-        className={inputClass}
+        className={err("bullet") ? inputError : inputNormal}
         value={entry.bullet ?? ""}
         onChange={(e) =>
           updateSectionEntry(sectionKey, index, { ...entry, bullet: e.target.value })
         }
       />
+      <FieldError message={err("bullet")} />
     </div>
   );
 }
@@ -430,7 +494,7 @@ function TextEntryForm({
     <div>
       <label className={labelClass}>Text</label>
       <input
-        className={inputClass}
+        className={inputNormal}
         value={typeof entry === "string" ? entry : ""}
         onChange={(e) =>
           updateSectionEntry(sectionKey, index, e.target.value)
@@ -459,7 +523,6 @@ function detectEntryType(sectionKey: string, entry: SectionEntry): string {
   if (typeof entry === "string") return "text";
   const mapped = SECTION_TYPE_MAP[sectionKey];
   if (mapped) return mapped;
-  // Try to detect from shape
   if ("institution" in entry) return "education";
   if ("company" in entry) return "experience";
   if ("title" in entry && "authors" in entry) return "publications";
@@ -476,26 +539,27 @@ function detectEntryType(sectionKey: string, entry: SectionEntry): string {
 export function getEntryForm(
   sectionKey: string,
   entry: SectionEntry,
-  index: number
+  index: number,
+  errors: Record<string, string> = {}
 ) {
   const type = detectEntryType(sectionKey, entry);
 
   switch (type) {
     case "education":
-      return <EducationEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <EducationEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "experience":
-      return <ExperienceEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <ExperienceEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "projects":
-      return <ProjectEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <ProjectEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "skills":
-      return <SkillsEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <SkillsEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "publications":
-      return <PublicationEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <PublicationEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "bullet":
-      return <BulletEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <BulletEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
     case "text":
       return <TextEntryForm key={index} sectionKey={sectionKey} index={index} />;
     default:
-      return <BulletEntryForm key={index} sectionKey={sectionKey} index={index} />;
+      return <BulletEntryForm key={index} sectionKey={sectionKey} index={index} errors={errors} />;
   }
 }

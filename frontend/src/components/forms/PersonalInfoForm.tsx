@@ -24,11 +24,22 @@ const SOCIAL_NETWORKS: SocialNetworkName[] = [
   "Reddit",
 ];
 
-const inputClass =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+const inputBase =
+  "w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2";
+const inputNormal = `${inputBase} border-gray-300 focus:ring-blue-500`;
+const inputError = `${inputBase} border-red-400 focus:ring-red-500`;
 const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
-export default function PersonalInfoForm() {
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+}
+
+interface PersonalInfoFormProps {
+  errors: Record<string, string>;
+}
+
+export default function PersonalInfoForm({ errors }: PersonalInfoFormProps) {
   const cv = useResumeStore((s) => s.resumeData.cv);
   const updatePersonalInfo = useResumeStore((s) => s.updatePersonalInfo);
 
@@ -59,6 +70,8 @@ export default function PersonalInfoForm() {
     updatePersonalInfo({ social_networks: updated });
   };
 
+  const fieldError = (path: string) => errors[`cv.${path}`];
+
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-gray-800">
@@ -70,55 +83,62 @@ export default function PersonalInfoForm() {
           <label className={labelClass}>Full Name</label>
           <input
             type="text"
-            className={inputClass}
+            className={fieldError("name") ? inputError : inputNormal}
             value={cv?.name ?? ""}
             onChange={(e) => updateField("name", e.target.value)}
           />
+          <FieldError message={fieldError("name")} />
         </div>
         <div>
           <label className={labelClass}>Headline</label>
           <input
             type="text"
-            className={inputClass}
+            className={fieldError("headline") ? inputError : inputNormal}
             value={cv?.headline ?? ""}
             onChange={(e) => updateField("headline", e.target.value)}
           />
+          <FieldError message={fieldError("headline")} />
         </div>
         <div>
           <label className={labelClass}>Email</label>
           <input
             type="email"
-            className={inputClass}
+            className={fieldError("email") ? inputError : inputNormal}
             value={cv?.email ?? ""}
             onChange={(e) => updateField("email", e.target.value)}
           />
+          <FieldError message={fieldError("email")} />
         </div>
         <div>
           <label className={labelClass}>Phone</label>
           <input
             type="tel"
-            className={inputClass}
+            className={fieldError("phone") ? inputError : inputNormal}
             value={cv?.phone ?? ""}
             onChange={(e) => updateField("phone", e.target.value)}
+            placeholder="+15551234567"
           />
+          <FieldError message={fieldError("phone")} />
         </div>
         <div>
           <label className={labelClass}>Location</label>
           <input
             type="text"
-            className={inputClass}
+            className={fieldError("location") ? inputError : inputNormal}
             value={cv?.location ?? ""}
             onChange={(e) => updateField("location", e.target.value)}
           />
+          <FieldError message={fieldError("location")} />
         </div>
         <div>
           <label className={labelClass}>Website</label>
           <input
             type="url"
-            className={inputClass}
+            className={fieldError("website") ? inputError : inputNormal}
             value={cv?.website ?? ""}
             onChange={(e) => updateField("website", e.target.value)}
           />
+          <FieldError message={fieldError("website")} />
         </div>
       </div>
 
@@ -137,39 +157,59 @@ export default function PersonalInfoForm() {
         </div>
 
         <div className="space-y-2">
-          {socialNetworks.map((sn, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <select
-                className="rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={sn.network}
-                onChange={(e) =>
-                  updateSocialNetwork(idx, "network", e.target.value)
-                }
-              >
-                {SOCIAL_NETWORKS.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                placeholder="Username"
-                className={inputClass}
-                value={sn.username}
-                onChange={(e) =>
-                  updateSocialNetwork(idx, "username", e.target.value)
-                }
-              />
-              <button
-                onClick={() => removeSocialNetwork(idx)}
-                className="shrink-0 rounded p-1.5 text-red-500 hover:bg-red-50"
-                aria-label="Remove social network"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
+          {socialNetworks.map((sn, idx) => {
+            const networkErr = fieldError(`social_networks.${idx}.network`);
+            const usernameErr = fieldError(`social_networks.${idx}.username`);
+            return (
+              <div key={idx}>
+                <div className="flex items-center gap-2">
+                  <select
+                    className={`rounded-md border px-2 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      networkErr
+                        ? "border-red-400 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-blue-500"
+                    }`}
+                    value={sn.network}
+                    onChange={(e) =>
+                      updateSocialNetwork(idx, "network", e.target.value)
+                    }
+                  >
+                    {SOCIAL_NETWORKS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    className={usernameErr ? inputError : inputNormal}
+                    value={sn.username}
+                    onChange={(e) =>
+                      updateSocialNetwork(idx, "username", e.target.value)
+                    }
+                  />
+                  <button
+                    onClick={() => removeSocialNetwork(idx)}
+                    className="shrink-0 rounded p-1.5 text-red-500 hover:bg-red-50"
+                    aria-label="Remove social network"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                {(networkErr || usernameErr) && (
+                  <div className="mt-1 flex gap-4">
+                    {networkErr && (
+                      <p className="text-xs text-red-600">{networkErr}</p>
+                    )}
+                    {usernameErr && (
+                      <p className="text-xs text-red-600">{usernameErr}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

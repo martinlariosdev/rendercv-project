@@ -19,14 +19,31 @@ import DesignPanel from "@/components/forms/DesignPanel";
 import YamlPreview from "@/components/YamlPreview";
 import PdfPreview from "@/components/PdfPreview";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import type { ValidationError } from "@/lib/apiClient";
 
 type MobileTab = "edit" | "yaml" | "preview";
+
+/**
+ * Build a lookup: field path -> error message.
+ * RenderCV locations look like "cv.phone", "cv.social_networks.0.network",
+ * "cv.sections.education.0.institution", "design.theme", etc.
+ */
+function buildErrorMap(errors: ValidationError[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const err of errors) {
+    map[err.location] = err.message;
+  }
+  return map;
+}
 
 export default function Home() {
   // PDF state
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
 
   // Panel collapse state (desktop)
   const [leftOpen, setLeftOpen] = useState(true);
@@ -39,6 +56,18 @@ export default function Home() {
   // Count open panels for grid layout
   const openCount = [leftOpen, centerOpen, rightOpen].filter(Boolean).length;
 
+  const errorMap = buildErrorMap(validationErrors);
+
+  const editorPanel = (
+    <div className="overflow-auto p-4">
+      <PersonalInfoForm errors={errorMap} />
+      <hr className="my-6 border-gray-200" />
+      <SectionManager errors={errorMap} />
+      <hr className="my-6 border-gray-200" />
+      <DesignPanel />
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar
@@ -46,6 +75,7 @@ export default function Home() {
         setPdfBlob={setPdfBlob}
         setGenerating={setGenerating}
         setGenerateError={setGenerateError}
+        setValidationErrors={setValidationErrors}
       />
       <SessionWarningBanner />
 
@@ -75,15 +105,7 @@ export default function Home() {
 
       {/* Mobile content */}
       <div className="flex-1 md:hidden">
-        {mobileTab === "edit" && (
-          <div className="overflow-auto p-4">
-            <PersonalInfoForm />
-            <hr className="my-6 border-gray-200" />
-            <SectionManager />
-            <hr className="my-6 border-gray-200" />
-            <DesignPanel />
-          </div>
-        )}
+        {mobileTab === "edit" && editorPanel}
         {mobileTab === "yaml" && (
           <div className="h-[calc(100vh-12rem)]">
             <YamlPreview />
@@ -157,9 +179,9 @@ export default function Home() {
           {/* Left panel: Form editor */}
           {leftOpen && (
             <div className="overflow-auto border-r border-gray-200 bg-white p-4">
-              <PersonalInfoForm />
+              <PersonalInfoForm errors={errorMap} />
               <hr className="my-6 border-gray-200" />
-              <SectionManager />
+              <SectionManager errors={errorMap} />
               <hr className="my-6 border-gray-200" />
               <DesignPanel />
             </div>

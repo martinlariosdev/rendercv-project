@@ -184,7 +184,7 @@ export const DEFAULT_RESUME: ResumeData = {
     headline: "Software Engineer",
     location: "San Francisco, CA",
     email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
+    phone: "+15551234567",
     website: "https://johndoe.dev",
     social_networks: [
       { network: "LinkedIn", username: "johndoe" },

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import glob
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -47,9 +48,47 @@ def _clean_dict(obj: Any) -> Any:
     return obj
 
 
+def _parse_validation_errors(output: str) -> list[dict[str, str]]:
+    """Parse RenderCV's rich-table validation output into structured errors.
+
+    Each row in the table has: Location | Input Value | Explanation
+    """
+    errors: list[dict[str, str]] = []
+    # Match rows between ├─ and ─┤ or │ and │ separators.
+    # The table uses box-drawing characters. Each data row looks like:
+    # │ │ cv.phone                     │ +1 (555) 123-4567 │ This is not a valid   │ │
+    row_pattern = re.compile(
+        r"│\s+│\s+(?P<location>\S+)\s+│\s+(?P<value>.+?)\s+│\s+(?P<explanation>.+?)\s+│\s+│"
+    )
+    # RenderCV wraps long explanations across multiple lines. The continuation
+    # lines have an empty location cell.
+    continuation_pattern = re.compile(
+        r"│\s+│\s+│\s+│\s+(?P<explanation>.+?)\s+│\s+│"
+    )
+
+    for line in output.splitlines():
+        m = row_pattern.match(line)
+        if m:
+            loc = m.group("location").strip()
+            # Skip the table header row
+            if loc == "Location":
+                continue
+            errors.append({
+                "location": loc,
+                "message": m.group("explanation").strip(),
+            })
+            continue
+        # Continuation of a multi-line explanation
+        c = continuation_pattern.match(line)
+        if c and errors:
+            errors[-1]["message"] += " " + c.group("explanation").strip()
+
+    return errors
+
+
 def resume_to_yaml(data: ResumeData) -> str:
     """Convert a ResumeData model to a YAML string suitable for RenderCV."""
-    raw = data.model_dump(exclude_none=True, by_alias=True)
+    raw = data.model_dump(exclude_none=True, by_alias=True, mode="json")
     cleaned = _clean_dict(raw)
     return yaml.dump(cleaned, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
@@ -77,10 +116,12 @@ async def generate(data: ResumeData):
         )
 
         if result.returncode != 0:
+            validation_errors = _parse_validation_errors(result.stdout)
             raise HTTPException(
                 status_code=422,
                 detail={
                     "message": "RenderCV failed to generate the PDF.",
+                    "validation_errors": validation_errors,
                     "stderr": result.stderr,
                     "stdout": result.stdout,
                 },

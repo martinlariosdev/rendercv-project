@@ -64,7 +64,11 @@ function detectSectionDisplayType(sectionKey: string, entries: SectionEntry[]): 
   return "projects";
 }
 
-export default function SectionManager() {
+interface SectionManagerProps {
+  errors?: Record<string, string>;
+}
+
+export default function SectionManager({ errors = {} }: SectionManagerProps) {
   const sections = useResumeStore((s) => s.resumeData.cv?.sections ?? {});
   const addSection = useResumeStore((s) => s.addSection);
   const removeSection = useResumeStore((s) => s.removeSection);
@@ -251,7 +255,7 @@ export default function SectionManager() {
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </button>
                                   </div>
-                                  {getEntryForm(key, entry, entryIdx)}
+                                  {getEntryForm(key, entry, entryIdx, errors)}
                                 </div>
                               ))}
                             </div>

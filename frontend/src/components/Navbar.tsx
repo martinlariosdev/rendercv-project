@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Upload, FileDown, RefreshCw, Eye } from "lucide-react";
 import { useResumeStore } from "@/store/resumeStore";
-import { generatePdf } from "@/lib/apiClient";
+import { generatePdf, ApiError } from "@/lib/apiClient";
+import type { ValidationError } from "@/lib/apiClient";
 import YamlImportModal from "./YamlImportModal";
 
 interface NavbarProps {
@@ -11,6 +12,7 @@ interface NavbarProps {
   setPdfBlob: (blob: Blob | null) => void;
   setGenerating: (v: boolean) => void;
   setGenerateError: (e: string | null) => void;
+  setValidationErrors: (errors: ValidationError[]) => void;
 }
 
 export default function Navbar({
@@ -18,6 +20,7 @@ export default function Navbar({
   setPdfBlob,
   setGenerating,
   setGenerateError,
+  setValidationErrors,
 }: NavbarProps) {
   const [showImport, setShowImport] = useState(false);
   const resumeData = useResumeStore((s) => s.resumeData);
@@ -26,13 +29,19 @@ export default function Navbar({
   const handleGenerate = async () => {
     setGenerating(true);
     setGenerateError(null);
+    setValidationErrors([]);
     try {
       const blob = await generatePdf(resumeData);
       setPdfBlob(blob);
     } catch (err) {
-      setGenerateError(
-        err instanceof Error ? err.message : "PDF generation failed"
-      );
+      if (err instanceof ApiError) {
+        setGenerateError(err.message);
+        setValidationErrors(err.validationErrors);
+      } else {
+        setGenerateError(
+          err instanceof Error ? err.message : "PDF generation failed"
+        );
+      }
     } finally {
       setGenerating(false);
     }
@@ -57,6 +66,8 @@ export default function Navbar({
     if (window.confirm("Reset all resume data to defaults?")) {
       resetResume();
       setPdfBlob(null);
+      setValidationErrors([]);
+      setGenerateError(null);
     }
   };
 

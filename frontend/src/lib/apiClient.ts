@@ -2,13 +2,24 @@ import type { ResumeData } from "@/types/resume";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+export interface ValidationError {
+  location: string;
+  message: string;
+}
+
 export class ApiError extends Error {
   status: number;
+  validationErrors: ValidationError[];
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    validationErrors: ValidationError[] = []
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.validationErrors = validationErrors;
   }
 }
 
@@ -31,13 +42,20 @@ export async function generatePdf(
 
   if (!response.ok) {
     let message = "PDF generation failed";
+    let validationErrors: ValidationError[] = [];
     try {
       const errorBody = await response.json();
-      message = errorBody.detail ?? errorBody.message ?? message;
+      const detail = errorBody.detail;
+      if (typeof detail === "object" && detail !== null) {
+        message = detail.message ?? message;
+        validationErrors = detail.validation_errors ?? [];
+      } else if (typeof detail === "string") {
+        message = detail;
+      }
     } catch {
       // response body was not JSON, keep default message
     }
-    throw new ApiError(message, response.status);
+    throw new ApiError(message, response.status, validationErrors);
   }
 
   return response.blob();
