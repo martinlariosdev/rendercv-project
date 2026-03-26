@@ -1,7 +1,7 @@
 "use client";
 
 import { useResumeStore } from "@/store/resumeStore";
-import type { ColorsConfig, TypographyConfig, PageConfig } from "@/types/resume";
+import type { ColorsConfig, TypographyConfig, PageConfig, SupportedLocale } from "@/types/resume";
 
 const inputClass =
   "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -33,10 +33,16 @@ const FONTS = [
 
 const ALIGNMENTS = ["left", "justified", "justified-with-no-hyphenation"];
 const PAGE_SIZES = ["us-letter", "a4"];
+const LANGUAGES: { value: SupportedLocale; label: string }[] = [
+  { value: "english", label: "English" },
+  { value: "spanish", label: "Spanish" },
+];
 
 export default function DesignPanel() {
   const design = useResumeStore((s) => s.resumeData.design ?? {});
   const updateDesign = useResumeStore((s) => s.updateDesign);
+  const locale = useResumeStore((s) => s.resumeData.locale);
+  const updateLocale = useResumeStore((s) => s.updateLocale);
 
   const colors: ColorsConfig = design.colors ?? {};
   const typography: TypographyConfig = design.typography ?? {};
@@ -163,6 +169,26 @@ export default function DesignPanel() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Language */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Language
+        </label>
+        <select
+          className={inputClass}
+          value={locale?.language ?? "english"}
+          onChange={(e) =>
+            updateLocale({ language: e.target.value as SupportedLocale })
+          }
+        >
+          {LANGUAGES.map((lang) => (
+            <option key={lang.value} value={lang.value}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Page */}

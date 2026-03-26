@@ -4,6 +4,7 @@ import type {
   ResumeData,
   CvData,
   DesignConfig,
+  LocaleConfig,
   SectionEntry,
   SectionType,
   EducationEntry,
@@ -53,6 +54,7 @@ interface ResumeStore {
   removeEntryFromSection: (sectionKey: string, index: number) => void;
   reorderSections: (newOrder: string[]) => void;
   updateDesign: (design: Partial<DesignConfig>) => void;
+  updateLocale: (locale: LocaleConfig) => void;
   setResumeData: (data: ResumeData) => void;
   resetResume: () => void;
 }
@@ -193,6 +195,14 @@ export const useResumeStore = create<ResumeStore>()(
               ...state.resumeData.design,
               ...design,
             },
+          },
+        })),
+
+      updateLocale: (locale) =>
+        set((state) => ({
+          resumeData: {
+            ...state.resumeData,
+            locale,
           },
         })),
 

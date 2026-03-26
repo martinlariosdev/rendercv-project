@@ -196,8 +196,14 @@ class CvData(BaseModel):
 
 # --- Top-Level Resume Data ---
 
+class LocaleConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    language: str = "english"
+
+
 class ResumeData(BaseModel):
     cv: CvData
     design: Optional[DesignConfig] = None
-    locale: Optional[str] = None
+    locale: Optional[LocaleConfig] = None
     settings: Optional[dict[str, Any]] = None

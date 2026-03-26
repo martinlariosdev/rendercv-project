@@ -169,11 +169,20 @@ export interface DesignConfig {
   section_titles?: SectionTitlesConfig;
 }
 
+// --- Locale ---
+
+export type SupportedLocale = "english" | "spanish";
+
+export interface LocaleConfig {
+  language: SupportedLocale;
+}
+
 // --- Top-Level Resume Data ---
 
 export interface ResumeData {
   cv?: CvData;
   design?: DesignConfig;
+  locale?: LocaleConfig;
 }
 
 // --- Default Resume ---
