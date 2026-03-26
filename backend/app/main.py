@@ -17,7 +17,24 @@ app = FastAPI(title="RenderCV API", version="1.0.0")
 
 
 # ---------------------------------------------------------------------------
-# Health endpoint — registered first so it is always reachable
+# CORS middleware — must be added before routes
+# ---------------------------------------------------------------------------
+
+raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+logger.info("Configuring CORS for origins: %s", allowed_origins)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ---------------------------------------------------------------------------
+# Health endpoint
 # ---------------------------------------------------------------------------
 
 @app.get("/health")
@@ -27,43 +44,18 @@ async def health():
 
 
 # ---------------------------------------------------------------------------
-# CORS middleware
-# ---------------------------------------------------------------------------
-
-try:
-    raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
-    allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
-    logger.info("Configuring CORS for origins: %s", allowed_origins)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_methods=["POST", "GET", "OPTIONS"],
-        allow_headers=["Content-Type"],
-    )
-    logger.info("CORS middleware configured successfully")
-except Exception:
-    logger.exception("Failed to configure CORS middleware — continuing without it")
-
-
-# ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
 
-try:
-    app.include_router(generate_router)
-    logger.info("generate_router registered successfully")
-except Exception:
-    logger.exception("Failed to register generate_router")
+app.include_router(generate_router)
+logger.info("generate_router registered successfully")
 
-try:
-    app.include_router(downloads_router)
-    logger.info("downloads_router registered successfully")
-except Exception:
-    logger.exception("Failed to register downloads_router")
+app.include_router(downloads_router)
+logger.info("downloads_router registered successfully")
 
 
 # ---------------------------------------------------------------------------
-# Startup / shutdown lifecycle events
+# Startup lifecycle event
 # ---------------------------------------------------------------------------
 
 @app.on_event("startup")
